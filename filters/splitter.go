@@ -20,9 +20,9 @@ func NewSplitter(numOutputs int) *Splitter {
 }
 
 // Read reads a Sample.
-func (s Splitter) Read() []float32 {
+func (s Splitter) Read() []goplug.Sample {
 	val := s.ihs.GetSocket(0).Read()
-	ret := make([]float32, s.numOutputs)
+	ret := make([]goplug.Sample, s.numOutputs)
 	for i := 0; i < s.numOutputs; i++ {
 		ret[i] = val
 	}

@@ -5,7 +5,7 @@ type Provider interface {
 	// Output should return the i-th OutputSocket.
 	Output(i int) *OutputSocket
 	// Read should return one sample for each OutputSocket.
-	Read() []float32
+	Read() []Sample
 }
 
 // Consumer is an interface for anything that consumes audio data.

@@ -44,7 +44,7 @@ func (s *SineSource) calculateDeltaT() {
 }
 
 // Read reads a sample.
-func (s *SineSource) Read() []float32 {
+func (s *SineSource) Read() []goplug.Sample {
 	s.t += s.deltaT
-	return []float32{float32(math.Sin(s.t))}
+	return []goplug.Sample{goplug.Sample{float32(math.Sin(s.t)), s.sampleFreq}}
 }

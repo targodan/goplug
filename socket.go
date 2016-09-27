@@ -12,9 +12,9 @@ func NewInputSocket() *InputSocket {
 
 // Read reads a sample from a connected OutputSocket or 0
 // if none is connected.
-func (is *InputSocket) Read() float32 {
+func (is *InputSocket) Read() Sample {
 	if is.conn == nil {
-		return 0
+		return Sample{0, 0}
 	}
 	return is.conn.Read()
 }
@@ -35,7 +35,7 @@ func NewOutputSocket() *OutputSocket {
 }
 
 // Read reads a sample from the Filter, Source or Drain it belongs to.
-func (os *OutputSocket) Read() float32 {
+func (os *OutputSocket) Read() Sample {
 	return os.handler.Read(os)
 }
 
@@ -74,12 +74,12 @@ func (ish *InputSocketHandler) GetSocket(i int) *InputSocket {
 }
 
 // ReadAll reads one sample for from all InputSockets.
-func (ish *InputSocketHandler) ReadAll() []float32 {
+func (ish *InputSocketHandler) ReadAll() []Sample {
 	if len(ish.sockets) == 1 {
-		return []float32{ish.sockets[0].Read()}
+		return []Sample{ish.sockets[0].Read()}
 	}
 
-	ret := make([]float32, len(ish.sockets))
+	ret := make([]Sample, len(ish.sockets))
 	wait := make(chan bool, len(ish.sockets))
 	for i := 0; i < len(ish.sockets); i++ {
 		go func(i int) {
@@ -130,8 +130,8 @@ func (ish *OutputSocketHandler) GetSocket(i int) *OutputSocket {
 }
 
 // Read reads a sample from the given OutputSocket and buffers where necessary.
-func (ish *OutputSocketHandler) Read(sender *OutputSocket) float32 {
-	var ret []float32
+func (ish *OutputSocketHandler) Read(sender *OutputSocket) Sample {
+	var ret []Sample
 	index := ish.indexes[sender]
 	if ish.buffer.ReadIndex() == ish.bufferIndexes[index] {
 		ish.buffer.Write(ish.provider.Read())

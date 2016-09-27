@@ -31,13 +31,18 @@ func NewMixer(numChannels int) *Mixer {
 }
 
 // Read reads a sample.
-func (m Mixer) Read() []float32 {
+func (m Mixer) Read() []goplug.Sample {
 	channels := m.ihs.ReadAll()
-	var ret float32
+	var ret goplug.Sample
 	for i, v := range channels {
-		ret += v * m.levels[i]
+		if ret.SampleFrequency != 0 && ret.SampleFrequency != v.SampleFrequency {
+			panic("Incompatible sample frequencies. Please use a resampler first.")
+		}
+		ret.SampleFrequency = v.SampleFrequency
+		ret.Value += v.Value * m.levels[i]
 	}
-	return []float32{m.masterLevel * ret / float32(m.numChannels)}
+	ret.Value = m.masterLevel * ret.Value / float32(m.numChannels)
+	return []goplug.Sample{ret}
 }
 
 // SetLevel sets the level for a channel.

@@ -25,3 +25,6 @@ _testmain.go
 
 # atom-go-debug-plugin
 *debug
+
+# Example data
+example/test.raw

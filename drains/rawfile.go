@@ -44,7 +44,7 @@ func (wf *RawFileDrain) Close() {
 func (wf *RawFileDrain) Start() {
 	wf.run = true
 	for wf.run {
-		binary.Write(wf.buf, binary.LittleEndian, wf.ihs.GetSocket(0).Read())
+		binary.Write(wf.buf, binary.LittleEndian, wf.ihs.GetSocket(0).Read().Value)
 	}
 	wf.hasStopped <- true
 }
