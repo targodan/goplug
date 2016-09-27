@@ -2,6 +2,12 @@ package filters
 
 import "github.com/targodan/goplug"
 
+// Mixer is a goplug.Filter implementation with multiple inputs
+// and one output. It mixes the channels together with a 1/n factor
+// whereas n is the number of channels.
+//
+// Additionally you can manipulate levels of each individual channel
+// as well as a master level.
 type Mixer struct {
 	Filter
 	numChannels int
@@ -9,6 +15,7 @@ type Mixer struct {
 	masterLevel float32
 }
 
+// NewMixer creates a new Mixer instance.
 func NewMixer(numChannels int) *Mixer {
 	ret := &Mixer{
 		numChannels: numChannels,
@@ -23,6 +30,7 @@ func NewMixer(numChannels int) *Mixer {
 	return ret
 }
 
+// Read reads a sample.
 func (m Mixer) Read() []float32 {
 	channels := m.ihs.ReadAll()
 	var ret float32
@@ -32,10 +40,12 @@ func (m Mixer) Read() []float32 {
 	return []float32{m.masterLevel * ret / float32(m.numChannels)}
 }
 
+// SetLevel sets the level for a channel.
 func (m *Mixer) SetLevel(channel int, level float32) {
 	m.levels[channel] = level
 }
 
+// SetMasterLevel sets the master level.
 func (m *Mixer) SetMasterLevel(level float32) {
 	m.masterLevel = level
 }
