@@ -28,3 +28,6 @@ _testmain.go
 
 # Example data
 example/test.raw
+
+# Compiled stuff
+*.dll
