@@ -86,4 +86,5 @@ func (dev *OutputDevice) Start() {
 func (dev *OutputDevice) Stop() {
 	dev.running = false
 	<-dev.hasStopped
+	dev.stream.Stop()
 }

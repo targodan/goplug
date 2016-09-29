@@ -34,7 +34,7 @@ func main() {
 	goplug.Chain(iDev, 0, 0, split, 0, 0, merge, 0, 0, oDev)
 	goplug.Chain(split, 1, 0, dist, 0, 1, merge, 0, 0, oDev)
 
-	oDev.Start()
-	time.Sleep(5 * time.Second)
+	go oDev.Start()
+	time.Sleep(60 * time.Second)
 	oDev.Stop()
 }
