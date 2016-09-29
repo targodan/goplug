@@ -1,6 +1,10 @@
 package filters
 
-import "github.com/targodan/goplug"
+import (
+	"fmt"
+
+	"github.com/targodan/goplug"
+)
 
 // Mixer is a goplug.Filter implementation with multiple inputs
 // and one output. It mixes the channels together with a 1/n factor
@@ -34,9 +38,10 @@ func NewMixer(numChannels int) *Mixer {
 func (m Mixer) Read() []goplug.Sample {
 	channels := m.ihs.ReadAll()
 	var ret goplug.Sample
+	ret.SampleFrequency = 0
 	for i, v := range channels {
-		if ret.SampleFrequency != 0 && ret.SampleFrequency != v.SampleFrequency {
-			panic("Incompatible sample frequencies. Please use a resampler first.")
+		if ret.SampleFrequency != 0 && v.SampleFrequency != 0 && ret.SampleFrequency != v.SampleFrequency {
+			panic(fmt.Sprintf("Incompatible sample frequencies expected %d but got %d. Please use a resampler first.", ret.SampleFrequency, v.SampleFrequency))
 		}
 		ret.SampleFrequency = v.SampleFrequency
 		ret.Value += v.Value * m.levels[i]

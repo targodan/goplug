@@ -13,12 +13,14 @@ type InputDevice struct {
 	numChannels int
 }
 
-func NewDefaultInputDevice() (*InputDevice, error) {
+func NewDefaultInputDevice(channels int, sampleRate uint) (*InputDevice, error) {
 	device, err := portaudio.DefaultInputDevice()
 	if err != nil {
 		return nil, err
 	}
-	params := portaudio.HighLatencyParameters(device, nil)
+	params := portaudio.LowLatencyParameters(device, nil)
+	params.Input.Channels = channels
+	params.SampleRate = float64(sampleRate)
 	return NewInputDevice(params)
 }
 

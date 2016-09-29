@@ -3,7 +3,6 @@ package portaudio
 import (
 	"github.com/gordonklaus/portaudio"
 	"github.com/targodan/goplug"
-	"github.com/targodan/goplug/sources"
 )
 
 type OutputDevice struct {
@@ -16,12 +15,14 @@ type OutputDevice struct {
 	numChannels int
 }
 
-func NewDefaultOutputDevice() (*OutputDevice, error) {
+func NewDefaultOutputDevice(channels int, sampleRate uint) (*OutputDevice, error) {
 	device, err := portaudio.DefaultOutputDevice()
 	if err != nil {
 		return nil, err
 	}
-	params := portaudio.HighLatencyParameters(nil, device)
+	params := portaudio.LowLatencyParameters(nil, device)
+	params.Output.Channels = channels
+	params.SampleRate = float64(sampleRate)
 	return NewOutputDevice(params)
 }
 
@@ -42,9 +43,6 @@ func NewOutputDevice(params portaudio.StreamParameters) (*OutputDevice, error) {
 	}
 	dev.stream = stream
 	dev.ihs = goplug.NewInputSocketHandler(dev.numChannels)
-	for i := 0; i < dev.numChannels; i++ {
-		dev.ihs.GetSocket(i).Plug(sources.NewSilence(dev.sampleRate).Output(0))
-	}
 	return dev, nil
 }
 
@@ -74,7 +72,7 @@ func (dev *OutputDevice) Start() {
 		cs := dev.ihs.ReadAll()
 		tmp := make([]float32, dev.numChannels)
 		for i, s := range cs {
-			if s.SampleFrequency != dev.sampleRate {
+			if s.SampleFrequency != 0 && s.SampleFrequency != dev.sampleRate {
 				dev.running = false
 				break
 			}

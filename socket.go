@@ -80,26 +80,26 @@ func (ish *InputSocketHandler) ReadAll() []Sample {
 	}
 
 	ret := make([]Sample, len(ish.sockets))
-	wait := make(chan bool, len(ish.sockets))
+	// wait := make(chan bool, len(ish.sockets))
 	for i := 0; i < len(ish.sockets); i++ {
-		go func(i int) {
-			ret[i] = ish.sockets[i].Read()
-			wait <- true
-		}(i)
+		// go func(i int) {
+		ret[i] = ish.sockets[i].Read()
+		// wait <- true
+		// }(i)
 	}
-	for i := 0; i < len(ish.sockets); i++ {
-		<-wait
-	}
+	// for i := 0; i < len(ish.sockets); i++ {
+	// 	<-wait
+	// }
 	return ret
 }
 
 // OutputSocketHandler is a helper for Filter or Source implementations.
 type OutputSocketHandler struct {
-	provider      Provider
-	sockets       []*OutputSocket
-	indexes       map[*OutputSocket]int
-	bufferIndexes []int
-	buffer        *SampleBuffer
+	provider Provider
+	sockets  []*OutputSocket
+	indexes  map[*OutputSocket]int
+	read     []bool
+	buffer   []Sample
 }
 
 // NewOutputSocketHandler creates a new OutputSocketHandler instance
@@ -108,7 +108,8 @@ func NewOutputSocketHandler(provider Provider, numSockets int) *OutputSocketHand
 	ret := &OutputSocketHandler{
 		provider: provider,
 		indexes:  make(map[*OutputSocket]int),
-		buffer:   NewSampleBuffer(16),
+		read:     make([]bool, 0, 1),
+		buffer:   make([]Sample, 0, 1),
 	}
 	for i := 0; i < numSockets; i++ {
 		ret.AddSocket(NewOutputSocket())
@@ -119,7 +120,8 @@ func NewOutputSocketHandler(provider Provider, numSockets int) *OutputSocketHand
 // AddSocket adds an OutputSocket.
 func (ish *OutputSocketHandler) AddSocket(s *OutputSocket) {
 	ish.sockets = append(ish.sockets, s)
-	ish.bufferIndexes = append(ish.bufferIndexes, ish.buffer.ReadIndex())
+	ish.buffer = append(ish.buffer, Sample{0, 0})
+	ish.read = append(ish.read, true)
 	ish.indexes[s] = len(ish.sockets) - 1
 	s.registerHanlder(ish)
 }
@@ -131,12 +133,14 @@ func (ish *OutputSocketHandler) GetSocket(i int) *OutputSocket {
 
 // Read reads a sample from the given OutputSocket and buffers where necessary.
 func (ish *OutputSocketHandler) Read(sender *OutputSocket) Sample {
-	var ret []Sample
 	index := ish.indexes[sender]
-	if ish.buffer.ReadIndex() == ish.bufferIndexes[index] {
-		ish.buffer.Write(ish.provider.Read())
+	if ish.read[index] {
+		for i, s := range ish.provider.Read() {
+			ish.buffer[i] = s
+			ish.read[i] = false
+		}
 	}
 
-	ret, ish.bufferIndexes[index] = ish.buffer.GetSample(ish.bufferIndexes[index] + 1)
-	return ret[index]
+	ish.read[index] = true
+	return ish.buffer[index]
 }
